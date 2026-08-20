@@ -1,41 +1,33 @@
 class Solution {
     public int divide(int dividend, int divisor) {
-        // Special case: overflow when dividing INT_MIN by -1
+        // Handle the one case that can overflow
         if (dividend == Integer.MIN_VALUE && divisor == -1) {
             return Integer.MAX_VALUE;
         }
 
-        // Determine sign of result
+        // Figure out if answer should be negative
         boolean negative = (dividend < 0) != (divisor < 0);
 
-        // Work with absolute values using long to avoid overflow
-        // (especially important since |Integer.MIN_VALUE| > Integer.MAX_VALUE)
+        // Convert both to positive longs (long avoids overflow headaches)
         long dvd = Math.abs((long) dividend);
         long dvs = Math.abs((long) divisor);
 
-        long result = 0;
+        int result = 0;
 
+        // Keep subtracting divisor, but double it each time it still fits
         while (dvd >= dvs) {
-            long temp = dvs;
-            long multiple = 1;
+            long sum = dvs;      // current chunk we're subtracting
+            int multiple = 1;    // how many "divisor"s that chunk represents
 
-            // Double temp (and multiple) as long as it still fits into dvd
-            while (dvd >= (temp << 1)) {
-                temp <<= 1;
-                multiple <<= 1;
+            while (sum + sum <= dvd) {
+                sum += sum;        // double the chunk
+                multiple += multiple; // double the count too
             }
 
-            // Subtract the largest found multiple, add to result
-            dvd -= temp;
+            dvd -= sum;
             result += multiple;
         }
 
-        result = negative ? -result : result;
-
-        // Clamp to 32-bit signed integer range
-        if (result > Integer.MAX_VALUE) return Integer.MAX_VALUE;
-        if (result < Integer.MIN_VALUE) return Integer.MIN_VALUE;
-
-        return (int) result;
+        return negative ? -result : result;
     }
 }
